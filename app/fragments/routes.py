@@ -1,5 +1,4 @@
 import os
-
 import requests
 from flask import request, jsonify
 from app.fragments import fragments_bp
@@ -9,31 +8,30 @@ AUDD_API_KEY = os.getenv('AUDD_API_KEY')
 
 @fragments_bp.route("/convert", methods=["POST"])
 def convert_fragment():
-
     file = request.files.get('file')
     if not file:
         return "No file provided", 400
 
-    response = requests.post(
-        'https://api.audd.io/',
-        data={'api_token': AUDD_API_KEY, 'return': 'apple_music,spotify'},
-        files={'file': file}
-    )
+    full_song_name = file.filename
+    full_song_path = os.path.join('resources', full_song_name)
 
-    if response.status_code == 200:
-        data = response.json()
-        if data['status'] == 'success':
-            track_info = data['result']
-            file_path = save_file(file)
-            db.add_track(track_info['title'], track_info['artist'], file_path)
-            return jsonify(track_info), 201
+    if os.path.exists(full_song_path):
+        response = requests.post(
+            'https://api.audd.io/',
+            data={'api_token': AUDD_API_KEY, 'return': 'apple_music,spotify'},
+            files={'file': file}
+        )
+        if response.status_code == 200:
+            data = response.json()
+            if data['status'] == 'success':
+                track_info = data['result']
+                track_name = track_info['title']
+                artist_name = track_info['artist']
+                db.add_track(track_name, artist_name, full_song_path)
+                return jsonify({"track_name": track_name, "artist_name": artist_name}), 201
+            else:
+                return data['error']['message'], 400
         else:
-            return data['error']['message'], 400
+            return f"Error from audd.io: {response.status_code}", 500
     else:
-        return "Error connecting to audd.io", 500
-
-
-def save_file(file):
-    file_path = f"resources/full-{file.filename}"
-    file.save(file_path)
-    return file_path
+        return "Full song not found", 404

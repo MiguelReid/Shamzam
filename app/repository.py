@@ -12,7 +12,8 @@ class Repository:
                 track_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 track_name TEXT NOT NULL,
                 artist_name TEXT NOT NULL,
-                file_path TEXT NOT NULL
+                file_path TEXT NOT NULL,
+                UNIQUE(track_name, artist_name)
             )
         ''')
         self.connection.commit()

@@ -1,16 +1,18 @@
+import os
+
 from flask import request, jsonify
 from app.songs import songs_bp
 from app.database import db
 
 @songs_bp.route("/add", methods=["POST"])
 def add_track():
-    data = request.get_json()
-    name = data.get('name')
-    file_path = data.get('file_path')
-    if not name or not file_path:
-        return "Invalid data", 400
-    db.add_track(name, file_path)
-    return "Track added", 201
+    file = request.files.get('file')
+    if not file:
+        return "No file provided", 400
+
+    file_path = os.path.join('resources', file.filename)
+    file.save(file_path)
+    return "File added to resources folder", 201
 
 @songs_bp.route("/remove/<track_id>", methods=["DELETE"])
 def remove_track(track_id):
