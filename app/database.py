@@ -1,3 +1,3 @@
 from app.repository import Repository
 
-db = Repository()
+db = Repository('database/shamzam.sqlite')

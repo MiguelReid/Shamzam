@@ -6,6 +6,7 @@ from app.database import db
 
 AUDD_API_KEY = os.getenv('AUDD_API_KEY')
 
+
 @fragments_bp.route("/convert", methods=["POST"])
 def convert_fragment():
     file = request.files.get('file')
@@ -30,7 +31,8 @@ def convert_fragment():
                 db.add_track(track_name, artist_name, full_song_path)
                 return jsonify({"track_name": track_name, "artist_name": artist_name}), 201
             else:
-                return data['error']['message'], 400
+                error_message = data['error'].get('message', 'Unknown error')
+                return error_message, 400
         else:
             return f"Error from audd.io: {response.status_code}", 500
     else:
