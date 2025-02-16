@@ -6,7 +6,6 @@ from app.database import db
 
 AUDD_API_KEY = os.getenv('AUDD_API_KEY')
 
-
 @fragments_bp.route("/convert", methods=["POST"])
 def convert_fragment():
     file = request.files.get('file')
@@ -16,7 +15,7 @@ def convert_fragment():
     full_song_name = file.filename
     full_song_path = os.path.join('resources', full_song_name)
 
-    if os.path.exists(full_song_path):
+    if db.track_exists(full_song_name):
         response = requests.post(
             'https://api.audd.io/',
             data={'api_token': AUDD_API_KEY, 'return': 'apple_music,spotify'},
@@ -34,6 +33,6 @@ def convert_fragment():
                 error_message = data['error'].get('message', 'Unknown error')
                 return error_message, 400
         else:
-            return f"Error from audd.io: {response.status_code}", 500
+            return f"Error from audd.io: ", response.status_code
     else:
         return "Full song not found", 404

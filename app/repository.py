@@ -22,8 +22,8 @@ class Repository:
         self.cursor.execute('INSERT INTO tracks (track_name, artist_name, file_path) VALUES (?, ?, ?)', (track_name, artist_name, file_path))
         self.connection.commit()
 
-    def remove_track(self, file_path):
-        self.cursor.execute('DELETE FROM tracks WHERE file_path = ?', (file_path,))
+    def remove_track(self, track_name):
+        self.cursor.execute('DELETE FROM tracks WHERE track_name = ?', (track_name,))
         self.connection.commit()
 
     def list_tracks(self):
@@ -33,6 +33,10 @@ class Repository:
     def get_track(self, track_id):
         self.cursor.execute('SELECT * FROM tracks WHERE track_id = ?', (track_id,))
         return self.cursor.fetchone()
+
+    def track_exists(self, track_name):
+        self.cursor.execute('SELECT 1 FROM tracks WHERE track_name LIKE ?', (f'%{track_name}%',))
+        return self.cursor.fetchone() is not None
 
     def empty_table(self):
         self.cursor.execute('DELETE FROM tracks')
