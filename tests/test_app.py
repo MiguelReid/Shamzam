@@ -9,7 +9,7 @@ class TestMusicCatalog(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client()
         self.app.config['TESTING'] = True
-        self.repo = Repository(db_name='database/test_shamzam.sqlite')
+        self.repo = Repository(db_name=':memory:')
         self.test_dir = os.path.dirname(os.path.abspath(__file__))
         self.test_track_path = os.path.join(self.test_dir, 'test_track.wav')
         self.test_fragment_path = os.path.join(self.test_dir, 'test_fragment.wav')
