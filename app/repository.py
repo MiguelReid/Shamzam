@@ -6,20 +6,23 @@ class Repository:
         self.cursor = self.connection.cursor()
         self.create_table()
 
+    # Adding tracks will be done by admin, therefore user_added will be 0
     def create_table(self):
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS tracks (
                 track_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 track_name TEXT NOT NULL,
-                artist_name TEXT NOT NULL,
-                file_path TEXT NOT NULL,
+                artist_name TEXT,
+                file_data BLOB NOT NULL,
+                user_added INTEGER DEFAULT 0,
                 UNIQUE(track_name, artist_name)
             )
         ''')
         self.connection.commit()
 
-    def add_track(self, track_name, artist_name, file_path):
-        self.cursor.execute('INSERT INTO tracks (track_name, artist_name, file_path) VALUES (?, ?, ?)', (track_name, artist_name, file_path))
+    def add_track(self, track_name, file_data):
+        self.cursor.execute('INSERT INTO tracks (track_name, file_data) VALUES (?, ?)',
+                            (track_name, file_data,))
         self.connection.commit()
 
     def remove_track(self, track_name):
@@ -27,16 +30,20 @@ class Repository:
         self.connection.commit()
 
     def list_tracks(self):
-        self.cursor.execute('SELECT * FROM tracks')
+        self.cursor.execute('SELECT track_name, artist_name FROM tracks WHERE user_added = 1')
         return self.cursor.fetchall()
-
-    def get_track(self, track_id):
-        self.cursor.execute('SELECT * FROM tracks WHERE track_id = ?', (track_id,))
-        return self.cursor.fetchone()
 
     def track_exists(self, track_name):
         self.cursor.execute('SELECT 1 FROM tracks WHERE track_name LIKE ?', (f'%{track_name}%',))
         return self.cursor.fetchone() is not None
+
+    def update_track(self, new_artist_name, track_name):
+        self.cursor.execute('''
+            UPDATE tracks
+            SET artist_name = ?, user_added = 1
+            WHERE track_name = ?
+        ''', (new_artist_name, track_name))
+        self.connection.commit()
 
     def empty_table(self):
         self.cursor.execute('DELETE FROM tracks')

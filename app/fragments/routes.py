@@ -12,10 +12,10 @@ def convert_fragment():
     if not file:
         return "No file provided", 400
 
-    full_song_name = file.filename
-    full_song_path = os.path.join('resources', full_song_name)
+    # Get trackname from post request
+    track_name = request.form.get('track_name')
 
-    if db.track_exists(full_song_name):
+    if db.track_exists(track_name):
         response = requests.post(
             'https://api.audd.io/',
             data={'api_token': AUDD_API_KEY, 'return': 'apple_music,spotify'},
@@ -25,9 +25,9 @@ def convert_fragment():
             data = response.json()
             if data['status'] == 'success':
                 track_info = data['result']
-                track_name = track_info['title']
                 artist_name = track_info['artist']
-                db.add_track(track_name, artist_name, full_song_path)
+                db.update_track(artist_name, track_name)
+                # Update function sets user_added to 1
                 return jsonify({"track_name": track_name, "artist_name": artist_name}), 201
             else:
                 error_message = data['error'].get('message', 'Unknown error')

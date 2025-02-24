@@ -22,7 +22,7 @@ class TestMusicCatalog(unittest.TestCase):
         with open(self.test_track_path, 'rb') as file:
             data = {
                 'file': (file, 'test_track.wav'),
-                'artist_name': 'Test Artist'
+                'track_name': 'test_track.wav'
             }
             response = self.client.post('/songs/add', data=data, content_type='multipart/form-data')
             self.assertEqual(response.status_code, 201)
@@ -33,46 +33,41 @@ class TestMusicCatalog(unittest.TestCase):
         with open(self.test_track_path, 'rb') as file:
             data = {
                 'file': (file, 'test_track.wav'),
-                'artist_name': 'Test Artist'
+                'track_name': 'test_track.wav'
             }
             self.client.post('/songs/add', data=data, content_type='multipart/form-data')
 
-        with open(self.test_track_path, 'rb') as file2:
-            data = {
-                'file': (file2, 'test_track.wav')
+            data2 = {
+                'track_name': 'test_track.wav'
             }
-            response = self.client.delete('/songs/remove', data=data, content_type='multipart/form-data')
+            response = self.client.delete('/songs/remove', data=data2, content_type='multipart/form-data')
             self.assertEqual(response.status_code, 200)
             track = self.repo.track_exists('test_track.wav')
             self.assertFalse(track)
 
-    def test_list_tracks(self):
-        with open(self.test_track_path, 'rb') as file:
-            data = {
-                'file': (file, 'test_track.wav'),
-                'artist_name': 'Test Artist'
-            }
-            self.client.post('/songs/add', data=data, content_type='multipart/form-data')
-            response = self.client.get('/songs/list')
-            self.assertEqual(response.status_code, 200)
-            self.assertNotEqual(len(response.get_json()), 0)
-
-    def test_convert_fragment_to_track(self):
+    def test_convert_fragment_and_listing(self):
         # Error 901 is returned when the API key is invalid
         with open(self.test_track_path, 'rb') as file:
             data = {
                 'file': (file, 'test_track.wav'),
-                'artist_name': 'Test Artist',
+                'track_name': 'test_track.wav'
             }
             self.client.post('/songs/add', data=data, content_type='multipart/form-data')
 
             with open(self.test_fragment_path, 'rb') as fragment_file:
                 data = {
-                    'file': (fragment_file, 'test_track.wav')
+                    'file': (fragment_file, 'test_track.wav'),
+                    'track_name': 'test_track.wav'
                 }
                 response = self.client.post('/fragments/convert', data=data, content_type='multipart/form-data')
                 self.assertEqual(response.status_code, 201)
-            # TODO Check if the track name is the one expected
+
+                # Testing the listing of tracks, when converting user_added
+                # is set to 1. Therefore, the list shouldn't be empty
+
+                response2 = self.client.get('/songs/list')
+                self.assertEqual(response2.status_code, 200)
+                self.assertNotEqual(len(response2.get_json()), 0)
 
     def test_add_track_no_file(self):
         response = self.client.post('/songs/add', data={}, content_type='multipart/form-data')
