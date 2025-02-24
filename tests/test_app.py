@@ -74,11 +74,10 @@ class TestMusicCatalog(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_remove_nonexistent_track(self):
-        with open(self.test_track_path, 'rb') as file:
-            data = {
-                'file': (file, 'non_existent_track.wav')
-            }
-            response = self.client.delete('/songs/remove', data=data, content_type='multipart/form-data')
+        data = {
+            'track_name': 'non_existing_track.wav'
+        }
+        response = self.client.delete('/songs/remove', data=data, content_type='multipart/form-data')
         self.assertEqual(response.status_code, 404)
 
     def test_list_tracks_empty(self):
