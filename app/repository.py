@@ -20,9 +20,9 @@ class Repository:
         ''')
         self.connection.commit()
 
-    def add_track(self, track_name, file_data):
-        self.cursor.execute('INSERT INTO tracks (track_name, file_data) VALUES (?, ?)',
-                            (track_name, file_data,))
+    def add_track(self, track_name, artist_name, file_data):
+        self.cursor.execute('INSERT INTO tracks (track_name, artist_name, file_data) VALUES (?, ?, ?)',
+                            (track_name, artist_name, file_data,))
         self.connection.commit()
 
     def remove_track(self, track_name):
@@ -30,19 +30,24 @@ class Repository:
         self.connection.commit()
 
     def list_tracks(self):
-        self.cursor.execute('SELECT track_name, artist_name FROM tracks WHERE user_added = 1')
+        self.cursor.execute('SELECT track_name, artist_name FROM tracks')
         return self.cursor.fetchall()
 
     def track_exists(self, track_name):
         self.cursor.execute('SELECT 1 FROM tracks WHERE track_name LIKE ?', (f'%{track_name}%',))
         return self.cursor.fetchone() is not None
 
-    def update_track(self, new_artist_name, track_name):
+    def get_file_data(self, track_name):
+        self.cursor.execute('SELECT file_data FROM tracks WHERE track_name = ?', (track_name,))
+        result = self.cursor.fetchone()
+        return result[0] if result else None
+
+    def update_track(self, track_name):
         self.cursor.execute('''
             UPDATE tracks
-            SET artist_name = ?, user_added = 1
+            SET user_added = 1
             WHERE track_name = ?
-        ''', (new_artist_name, track_name))
+        ''', (track_name,))
         self.connection.commit()
 
     def empty_table(self):

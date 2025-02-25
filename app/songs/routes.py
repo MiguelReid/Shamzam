@@ -5,10 +5,12 @@ from app.songs import songs_bp
 from app.database import db
 import base64
 
-# python
+
 @songs_bp.route("/add", methods=["POST"])
 def add_track():
     file = request.files.get('file')
+    artist_name = request.form.get('artist_name')
+
     if not file:
         return "File required", 400
 
@@ -17,7 +19,7 @@ def add_track():
 
     track_name = request.form.get('track_name')
 
-    db.add_track(track_name, encoded_file)
+    db.add_track(track_name, artist_name, encoded_file)
     file.close()
     return "File added to database", 201
 

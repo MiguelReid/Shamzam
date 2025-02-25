@@ -57,7 +57,8 @@ class TestMusicCatalog(unittest.TestCase):
             with open(self.test_fragment_path, 'rb') as fragment_file:
                 data = {
                     'file': (fragment_file, 'test_track.wav'),
-                    'track_name': 'test_track.wav'
+                    'track_name': 'test_track.wav',
+                    'artist_name': 'test_artist'
                 }
                 response = self.client.post('/fragments/convert', data=data, content_type='multipart/form-data')
                 self.assertEqual(response.status_code, 201)
