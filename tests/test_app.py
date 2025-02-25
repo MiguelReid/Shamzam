@@ -1,7 +1,7 @@
 import os
 import unittest
 from app import create_app
-from app.repository import Repository
+from database.repository import Repository
 
 
 class TestMusicCatalog(unittest.TestCase):
@@ -22,7 +22,8 @@ class TestMusicCatalog(unittest.TestCase):
         with open(self.test_track_path, 'rb') as file:
             data = {
                 'file': (file, 'test_track.wav'),
-                'track_name': 'test_track.wav'
+                'track_name': 'test_track.wav',
+                'artist_name': 'test_artist'
             }
             response = self.client.post('/songs/add', data=data, content_type='multipart/form-data')
             self.assertEqual(response.status_code, 201)
@@ -33,7 +34,8 @@ class TestMusicCatalog(unittest.TestCase):
         with open(self.test_track_path, 'rb') as file:
             data = {
                 'file': (file, 'test_track.wav'),
-                'track_name': 'test_track.wav'
+                'track_name': 'test_track.wav',
+                'artist_name': 'test_artist'
             }
             self.client.post('/songs/add', data=data, content_type='multipart/form-data')
 
@@ -50,7 +52,8 @@ class TestMusicCatalog(unittest.TestCase):
         with open(self.test_track_path, 'rb') as file:
             data = {
                 'file': (file, 'test_track.wav'),
-                'track_name': 'test_track.wav'
+                'track_name': 'test_track.wav',
+                'artist_name': 'test_artist'
             }
             self.client.post('/songs/add', data=data, content_type='multipart/form-data')
 
@@ -60,7 +63,7 @@ class TestMusicCatalog(unittest.TestCase):
                     'track_name': 'test_track.wav',
                     'artist_name': 'test_artist'
                 }
-                response = self.client.post('/fragments/convert', data=data, content_type='multipart/form-data')
+                response = self.client.post('/routes/convert', data=data, content_type='multipart/form-data')
                 self.assertEqual(response.status_code, 201)
 
                 # Testing the listing of tracks, when converting user_added
