@@ -67,7 +67,7 @@ class TestMusicCatalog(unittest.TestCase):
                     'track_name': 'test_track.wav',
                     'artist_name': 'test_artist'
                 }
-                response = self.client.post('/routes/convert', data=data, content_type='multipart/form-data')
+                response = self.client.post('/fragments/convert', data=data, content_type='multipart/form-data')
                 self.assertEqual(response.status_code, 201)
 
     def test_add_track_no_file(self):
