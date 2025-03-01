@@ -18,7 +18,7 @@ class TestMusicCatalog(unittest.TestCase):
         self.client.delete('/songs/empty')
         self.repo.close()
 
-    def test_add_track(self):
+    def test_adding_and_listing(self):
         with open(self.test_track_path, 'rb') as file:
             data = {
                 'file': (file, 'test_track.wav'),
@@ -29,6 +29,10 @@ class TestMusicCatalog(unittest.TestCase):
             self.assertEqual(response.status_code, 201)
             track = self.repo.track_exists('test_track.wav')
             self.assertIsNotNone(track)
+
+            response2 = self.client.get('/songs/list')
+            self.assertEqual(response2.status_code, 200)
+            self.assertNotEqual(len(response2.get_json()), 0)
 
     def test_remove_track(self):
         with open(self.test_track_path, 'rb') as file:
@@ -47,7 +51,7 @@ class TestMusicCatalog(unittest.TestCase):
             track = self.repo.track_exists('test_track.wav')
             self.assertFalse(track)
 
-    def test_convert_fragment_and_listing(self):
+    def test_convert_fragment(self):
         # Error 901 is returned when the API key is invalid
         with open(self.test_track_path, 'rb') as file:
             data = {
@@ -65,13 +69,6 @@ class TestMusicCatalog(unittest.TestCase):
                 }
                 response = self.client.post('/routes/convert', data=data, content_type='multipart/form-data')
                 self.assertEqual(response.status_code, 201)
-
-                # Testing the listing of tracks, when converting user_added
-                # is set to 1. Therefore, the list shouldn't be empty
-
-                response2 = self.client.get('/songs/list')
-                self.assertEqual(response2.status_code, 200)
-                self.assertNotEqual(len(response2.get_json()), 0)
 
     def test_add_track_no_file(self):
         response = self.client.post('/songs/add', data={}, content_type='multipart/form-data')

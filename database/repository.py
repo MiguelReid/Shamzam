@@ -6,7 +6,6 @@ class Repository:
         self.cursor = self.connection.cursor()
         self.create_table()
 
-    # Adding tracks will be done by admin, therefore user_added will be 0
     def create_table(self):
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS tracks (
@@ -14,7 +13,6 @@ class Repository:
                 track_name TEXT NOT NULL,
                 artist_name TEXT,
                 file_data BLOB NOT NULL,
-                user_added INTEGER DEFAULT 0,
                 UNIQUE(track_name, artist_name)
             )
         ''')
@@ -41,14 +39,6 @@ class Repository:
         self.cursor.execute('SELECT file_data FROM tracks WHERE track_name = ?', (track_name,))
         result = self.cursor.fetchone()
         return result[0] if result else None
-
-    def update_track(self, track_name):
-        self.cursor.execute('''
-            UPDATE tracks
-            SET user_added = 1
-            WHERE track_name = ?
-        ''', (track_name,))
-        self.connection.commit()
 
     def empty_table(self):
         self.cursor.execute('DELETE FROM tracks')

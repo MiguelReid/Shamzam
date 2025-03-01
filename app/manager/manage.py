@@ -51,7 +51,6 @@ def convert_fragment(file, track_name):
         if response.status_code == 200:
             data = response.json()
             if data['status'] == 'success':
-                db.update_track(track_name)
                 decoded_file = base64.b64decode(file_data)
                 memory_file = BytesIO(decoded_file)
                 memory_file.seek(0)
