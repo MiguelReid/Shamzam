@@ -4,16 +4,18 @@ import requests
 from flask import jsonify, send_file
 from database.db import db
 
-#AUDD_API_KEY = os.getenv('AUDD_API_KEY')
 AUDD_API_KEY = 'test'
 
 def add_track(file, artist_name, track_name):
+    # Check if the required parameters are present
     if not file or not artist_name or not track_name:
         return "File, artist and track name required", 400
 
+    # Check if the file is a .wav file
     if not file.filename.lower().endswith('.wav'):
         return "Only .wav files are accepted", 400
 
+    # Base64 encoding
     file_data = file.read()
     encoded_file = base64.b64encode(file_data)
     db.add_track(track_name, artist_name, encoded_file)
@@ -21,8 +23,10 @@ def add_track(file, artist_name, track_name):
     return "Track added successfully", 201
 
 def remove_track(track_name):
+    # Check if the track name is present
     if not track_name:
         return "Track name required", 400
+    # Check if track exists
     if not db.track_exists(track_name):
         return "Track not found", 404
     db.remove_track(track_name)
@@ -36,34 +40,46 @@ def empty_table():
     db.empty_table()
     return "Table emptied", 200
 
+
 def convert_fragment(file, track_name):
+    # Check if the required parameters are present
     if not file or not track_name:
         return "File and track name required", 400
 
+    # Check if the file is a .wav file
     if not file.filename.lower().endswith('.wav'):
         return "Only .wav files are accepted", 400
 
-    if db.track_exists(track_name):
-        file_data = db.get_file_data(track_name)
+    try:
+        # Check if the track exists
+        if db.track_exists(track_name):
+            file_data = db.get_file_data(track_name)
 
-        if not file_data:
-            return "File not found in database", 404
+            if not file_data:
+                return "File not found in database", 404
 
-        response = requests.post(
-            'https://api.audd.io/',
-            data={'api_token': AUDD_API_KEY, 'return': 'apple_music,spotify'},
-            files={'file': file}
-        )
-        if response.status_code == 200:
-            data = response.json()
-            if data['status'] == 'success':
-                decoded_file = base64.b64decode(file_data)
-                memory_file = BytesIO(decoded_file)
-                memory_file.seek(0)
-                return send_file(memory_file, mimetype='audio/wav', as_attachment=False), 201
+            # Read the file content before passing to requests
+            file_content = file.read()
+
+            response = requests.post(
+                'https://api.audd.io/',
+                data={'api_token': AUDD_API_KEY, 'return': 'apple_music,spotify'},
+                files={'file': ('audio.wav', file_content, 'audio/wav')}
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                if data['status'] == 'success':
+                    # Decode the base64 encoded file and send it to the user
+                    decoded_file = base64.b64decode(file_data)
+                    memory_file = BytesIO(decoded_file)
+                    memory_file.seek(0)
+                    return send_file(memory_file, mimetype='audio/wav', as_attachment=False), 201
+                else:
+                    return "Error from external service", 400
             else:
-                return "Error from external service", 400
+                return f"Error from audd.io: ", response.status_code
         else:
-            return f"Error from audd.io: ", response.status_code
-    else:
-        return "Full song not found", 404
+            return "Full song not found", 404
+    finally:
+        file.close()

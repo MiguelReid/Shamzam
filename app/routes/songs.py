@@ -5,6 +5,7 @@ from app.routes import songs_bp
 
 @songs_bp.route("/add", methods=["POST"])
 def add_track():
+    # Request necessary parameters
     file = request.files.get('file')
     artist_name = request.form.get('artist_name')
     track_name = request.form.get('track_name')
@@ -18,6 +19,7 @@ def add_track():
 
 @songs_bp.route("/remove", methods=["DELETE"])
 def remove_track():
+    # Request necessary parameters
     track_name = request.form.get('track_name')
     response, status_code = manage.remove_track(track_name)
     return response, status_code
