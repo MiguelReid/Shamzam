@@ -11,6 +11,9 @@ def add_track(file, artist_name, track_name):
     if not file or not artist_name or not track_name:
         return "File, artist and track name required", 400
 
+    if not file.filename.lower().endswith('.wav'):
+        return "Only .wav files are accepted", 400
+
     file_data = file.read()
     encoded_file = base64.b64encode(file_data)
     db.add_track(track_name, artist_name, encoded_file)
@@ -36,6 +39,9 @@ def empty_table():
 def convert_fragment(file, track_name):
     if not file or not track_name:
         return "File and track name required", 400
+
+    if not file.filename.lower().endswith('.wav'):
+        return "Only .wav files are accepted", 400
 
     if db.track_exists(track_name):
         file_data = db.get_file_data(track_name)

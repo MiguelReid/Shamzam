@@ -81,11 +81,55 @@ class TestMusicCatalog(unittest.TestCase):
         response = self.client.delete('/songs/remove', data=data, content_type='multipart/form-data')
         self.assertEqual(response.status_code, 404)
 
-    def test_list_tracks_empty(self):
-        response = self.client.get('/songs/list')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json(), [])
+    def test_empty_string_names(self):
+        with open(self.test_track_path, 'rb') as file:
+            data = {
+                'file': (file, 'test_track.wav'),
+                'track_name': '',
+                'artist_name': 'test_artist'
+            }
+            response = self.client.post('/songs/add', data=data, content_type='multipart/form-data')
+            self.assertEqual(response.status_code, 400)
 
+    def test_add_track_missing_metadata(self):
+        with open(self.test_track_path, 'rb') as file:
+            data = {'file': (file, 'test_track.wav')}
+            response = self.client.post('/songs/add', data=data, content_type='multipart/form-data')
+            self.assertEqual(response.status_code, 400)
+
+    def test_file_type_validation(self):
+        # Test with common audio formats
+        audio_formats = [('tests/test_track.wav', True),
+                         ('tests/test_app.py', False)]
+
+        for file_path, should_accept in audio_formats:
+            with open(file_path, 'rb') as file:
+                data = {
+                    'file': (file, os.path.basename(file_path)),
+                    'track_name': 'test_validation',
+                    'artist_name': 'test_artist'
+                }
+                response = self.client.post('/songs/add', data=data, content_type='multipart/form-data')
+                expected_code = 201 if should_accept else 400
+                self.assertEqual(response.status_code, expected_code, f"Failed for {file_path}")
+
+    def test_empty_database(self):
+        # Add a track first
+        with open(self.test_track_path, 'rb') as file:
+            data = {
+                'file': (file, 'test_track.wav'),
+                'track_name': 'test_track',
+                'artist_name': 'test_artist'
+            }
+            self.client.post('/songs/add', data=data, content_type='multipart/form-data')
+
+        # Test emptying the database
+        response = self.client.delete('/songs/empty')
+        self.assertEqual(response.status_code, 200)
+
+        # Verify database is empty
+        response = self.client.get('/songs/list')
+        self.assertEqual(len(response.get_json()), 0)
 
 if __name__ == '__main__':
     unittest.main()
