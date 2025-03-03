@@ -78,7 +78,7 @@ def convert_fragment(file, track_name):
                 else:
                     return "Error from external service", 400
             else:
-                return f"Error from audd.io: ", response.status_code
+                return f"Error from audd.io: ", 500
         else:
             return "Full song not found", 404
     finally:
