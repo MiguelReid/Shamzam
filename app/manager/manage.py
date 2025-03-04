@@ -70,11 +70,8 @@ def convert_fragment(file, track_name):
             if response.status_code == 200:
                 data = response.json()
                 if data['status'] == 'success':
-                    # Decode the base64 encoded file and send it to the user
-                    decoded_file = base64.b64decode(file_data)
-                    memory_file = BytesIO(decoded_file)
-                    memory_file.seek(0)
-                    return send_file(memory_file, mimetype='audio/wav', as_attachment=False), 201
+                    # Return the base64-encoded file data as JSON
+                    return jsonify({"encoded_file": file_data.decode('utf-8')}), 201
                 else:
                     return "Error from external service", 400
             else:
